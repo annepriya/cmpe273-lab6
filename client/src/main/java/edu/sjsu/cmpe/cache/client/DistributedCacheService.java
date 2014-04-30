@@ -20,7 +20,7 @@ public class DistributedCacheService implements CacheServiceInterface {
      * @see edu.sjsu.cmpe.cache.client.CacheServiceInterface#get(long)
      */
     @Override
-    public String get(long key) {
+    public String get(Long key) {
         HttpResponse<JsonNode> response = null;
         try {
             response = Unirest.get(this.cacheServerUrl + "/cache/{key}")
@@ -39,7 +39,7 @@ public class DistributedCacheService implements CacheServiceInterface {
      *      java.lang.String)
      */
     @Override
-    public void put(long key, String value) {
+    public void put(Long key, String value) {
         HttpResponse<JsonNode> response = null;
         try {
             response = Unirest
