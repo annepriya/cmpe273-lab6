@@ -11,7 +11,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
 public class Client {
-	private final SortedMap<Long, String> cacheLookUp = new TreeMap<Long, String>();
+	private final SortedMap<Integer, String> cacheLookUp = new TreeMap<Integer, String>();
 	private final HashFunction hashFunction;
 	
 	
@@ -19,7 +19,7 @@ public class Client {
 	
 		this.hashFunction=hf;
 		for(String server : servers){
-			cacheLookUp.put(hashFunction.hashString(server + 1).asLong(),
+			cacheLookUp.put(hashFunction.hashString(server).asInt(),
                      server);
 			
 		}
@@ -32,9 +32,9 @@ public class Client {
 		 if (cacheLookUp.isEmpty()) {
 	            return null;
 	        }
-	        long hash = hashFunction.hashString(key.toString()).asLong();
+	        int hash = hashFunction.hashString(key.toString()).asInt();
 	        if (!cacheLookUp.containsKey(hash)) {
-	            SortedMap<Long, String> tailMap = cacheLookUp.tailMap(hash);
+	            SortedMap<Integer, String> tailMap = cacheLookUp.tailMap(hash);
 	            hash = tailMap.isEmpty() ? cacheLookUp.firstKey() : tailMap.firstKey();
 	        }
 	        return cacheLookUp.get(hash);
@@ -44,47 +44,50 @@ public class Client {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting Cache Client...");
         int bucket=0;
-        
+      
         List<String> servers = new ArrayList<String>();
         servers.add("http://localhost:3000");
         servers.add("http://localhost:3001");
         servers.add("http://localhost:3002");
 
-       HashMap<Long,String> keyValue=new HashMap<Long, String>();
-        keyValue.put(new Long(1), "a");
-        keyValue.put(new Long(2), "b");
-        keyValue.put(new Long(3), "c");
-        keyValue.put(new Long(4), "d");
-        keyValue.put(new Long(5), "e");
-        keyValue.put(new Long(6), "f");
-        keyValue.put(new Long(7), "g");
-        keyValue.put(new Long(8), "h");
-        keyValue.put(new Long(9), "i");
-        keyValue.put(new Long(10), "j");
+       HashMap<Integer,String> keyValue=new HashMap<Integer, String>();
+        keyValue.put(1, "a");
+        keyValue.put(2, "b");
+        keyValue.put(3, "c");
+        keyValue.put(4, "d");
+        keyValue.put(5, "e");
+        keyValue.put(6, "f");
+        keyValue.put(7, "g");
+        keyValue.put(8, "h");
+        keyValue.put(9, "i");
+        keyValue.put(10, "j");
         
         HashFunction hf = Hashing.md5();
         
         Client client=new Client(hf, servers);
-        Long key=0L; 
+        Integer key=0; 
         String value=null;
         String server=null;
-        for (Map.Entry<Long,String> entry : keyValue.entrySet()) {
+       
+        for (Map.Entry<Integer,String> entry : keyValue.entrySet()) {
         	   key = entry.getKey();
         	   value = entry.getValue();
-        	  // do stuff
-        	  
+        	 
         	  bucket=Hashing.consistentHash(hf.hashString(key.toString()), servers.size());
-              server=client.getServer(bucket);
+             server=client.getServer(bucket);
               CacheServiceInterface cache=new DistributedCacheService(
                       server);
+            
               cache.put(key, value);
               
-              System.out.println(" put "+key+"to -->"+server);
+              System.out.println(" put "+key+" and "+value+" to -->"+cache.getServer());
 
               String valueToPrint = cache.get(key);
-              System.out.println("get -" + valueToPrint+"- from server"+server);
+              System.out.println("get("+key+")->" + valueToPrint+" from server"+cache.getServer());
         	}
         
+       
+       
       
        
         System.out.println("Existing Cache Client...");
